@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"go-zero-demo/book/service/user/cmd/rpc/internal/svc"
-	"go-zero-demo/book/service/user/cmd/rpc/user"
+	"go-zero-demo/book/service/user/cmd/rpc/types/user"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type GetUserLogic struct {
@@ -24,15 +24,7 @@ func NewGetUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUserLo
 }
 
 func (l *GetUserLogic) GetUser(in *user.IdReq) (*user.UserInfoReply, error) {
-	one, err := l.svcCtx.UserModel.FindOne(in.Id)
-	if err != nil {
-		return nil, err
-	}
+	// todo: add your logic here and delete this line
 
-	return &user.UserInfoReply{
-		Id:     one.Id,
-		Name:   one.Name,
-		Number: one.Number,
-		Gender: one.Gender,
-	}, nil
+	return &user.UserInfoReply{}, nil
 }

@@ -4,9 +4,9 @@ import (
 	"context"
 
 	"go-zero-demo/mall/user/rpc/internal/svc"
-	"go-zero-demo/mall/user/rpc/user"
+	"go-zero-demo/mall/user/rpc/types/user"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 )
 
 type GetUserLogic struct {
@@ -24,8 +24,7 @@ func NewGetUserLogic(ctx context.Context, svcCtx *svc.ServiceContext) *GetUserLo
 }
 
 func (l *GetUserLogic) GetUser(in *user.IdRequest) (*user.UserResponse, error) {
-	return &user.UserResponse{
-		Id:   "1",
-		Name: "test",
-	}, nil
+	// todo: add your logic here and delete this line
+
+	return &user.UserResponse{}, nil
 }

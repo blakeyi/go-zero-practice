@@ -1,6 +1,7 @@
 syntax = "proto3";
 
 package user;
+option go_package = "./user";
 
 message IdRequest {
     string id = 1;

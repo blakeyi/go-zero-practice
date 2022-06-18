@@ -3,7 +3,7 @@ package logic
 import (
 	"context"
 
-	"github.com/tal-tech/go-zero/core/logx"
+	"github.com/zeromicro/go-zero/core/logx"
 	"go-zero-demo/book/service/search/cmd/api/internal/svc"
 )
 
@@ -13,8 +13,8 @@ type PingLogic struct {
 	svcCtx *svc.ServiceContext
 }
 
-func NewPingLogic(ctx context.Context, svcCtx *svc.ServiceContext) PingLogic {
-	return PingLogic{
+func NewPingLogic(ctx context.Context, svcCtx *svc.ServiceContext) *PingLogic {
+	return &PingLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,

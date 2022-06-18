@@ -30,22 +30,25 @@ Done.
 
 ```shell
 $ tree greet
-greet
+.
 ├── etc
-│   └── greet-api.yaml
-├── greet.api
-├── greet.go
-└── internal
-    ├── config
-    │   └── config.go
-    ├── handler
+│   └── greet-api.yaml              // 配置文件
+├── go.mod                          // mod文件
+├── greet.api                       // api描述文件
+├── greet.go                        // main函数入口
+└── internal                        
+    ├── config  
+    │   └── config.go               // 配置声明type
+    ├── handler                     // 路由及handler转发
     │   ├── greethandler.go
     │   └── routes.go
-    ├── logic
+    ├── logic                       // 业务逻辑
     │   └── greetlogic.go
-    ├── svc
+    ├── middleware                  // 中间件文件
+    │   └── greetmiddleware.go
+    ├── svc                         // logic所依赖的资源池
     │   └── servicecontext.go
-    └── types
+    └── types                       // request、response的struct，根据api自动生成，不建议编辑
         └── types.go
 ```
 ## 2.2 复杂一点的单体服务
@@ -203,6 +206,26 @@ func (l *GetUserLogic) GetUser(in *user.IdRequest) (*user.UserResponse, error) {
 }
 ```
 
+## 3.4 rpc深入
+
+
+# 4 数据库model文件
+
+- 1.方式一(ddl)
+进入service/user/model目录，执行命令
+
+```shell
+$ cd service/user/model
+$ goctl model mysql ddl -src user.sql -dir . -c
+Done.
+```
+- 2.方式二(datasource)
+
+```shell
+$ goctl model mysql datasource -url="$datasource" -table="user" -c -dir .
+Done.
+```
+
 # 4 模板
 go-zero主要模式还是通过编写api文件和proto文件,借用模板文件进行代码生成,有些时候对模板的定制还是比较重要的
 生成最新的template文件到指定文件夹, 要使用自己的模板的话,在相应的命令后面指定 -home参数即可
@@ -216,6 +239,8 @@ go-zero主要模式还是通过编写api文件和proto文件,借用模板文件�
 ├─newapi
 └─rpc
 ```
+
+
 
 # 3 goctl
 # 6 组件深入

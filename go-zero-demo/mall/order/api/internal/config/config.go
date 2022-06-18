@@ -1,11 +1,7 @@
 package config
 
-import (
-	"github.com/tal-tech/go-zero/rest"
-	"github.com/tal-tech/go-zero/zrpc"
-)
+import "github.com/zeromicro/go-zero/rest"
 
 type Config struct {
 	rest.RestConf
-	UserRpc zrpc.RpcClientConf
 }

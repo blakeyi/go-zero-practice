@@ -8,11 +8,12 @@ import (
 
 	"go-zero-demo/mall/user/rpc/internal/logic"
 	"go-zero-demo/mall/user/rpc/internal/svc"
-	"go-zero-demo/mall/user/rpc/user"
+	"go-zero-demo/mall/user/rpc/types/user"
 )
 
 type UserServer struct {
 	svcCtx *svc.ServiceContext
+	user.UnimplementedUserServer
 }
 
 func NewUserServer(svcCtx *svc.ServiceContext) *UserServer {

@@ -8,5 +8,5 @@ type Response {
 
 service greet-api {
 	@handler GreetHandler
-	get /from/:name(Request) returns (Response);
+	get /from/:name(Request) returns (Response)
 }
