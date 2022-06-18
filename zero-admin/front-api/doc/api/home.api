@@ -1,0 +1,59 @@
+info(
+    desc: "首页数据"
+    author: "koobe"
+    email: "1002219331@qq.com"
+)
+
+type HomeResp struct {
+    Errno  int64  `json:"errno"`
+    Data   HomeData   `json:"data"`
+    Errmsg string `json:"errmsg"`
+}
+
+type HomeData struct {
+    NewGoodsList []GoodsList `json:"newGoodsList"`
+    Channel      []Channel   `json:"channel"`
+    Banner       []Banner    `json:"banner"`
+    HotGoodsList []GoodsList `json:"hotGoodsList"`
+}
+
+type Banner struct {
+    ID         int64  `json:"id"`
+    Name       string `json:"name"`
+    Link       string `json:"link"`
+    URL        string `json:"url"`
+    Position   int64  `json:"position"`
+    Content    string `json:"content"`
+    Enabled    bool   `json:"enabled"`
+    AddTime    string   `json:"addTime"`
+    UpdateTime string   `json:"updateTime"`
+    Deleted    bool   `json:"deleted"`
+}
+
+
+type Channel struct {
+    ID      int64  `json:"id"`
+    Name    string `json:"name"`
+    IconURL string `json:"iconUrl"`
+}
+
+type GoodsList struct {
+    ID           int64  `json:"id"`
+    Name         string `json:"name"`
+    Brief        string `json:"brief"`
+    PicURL       string `json:"picUrl"`
+    IsNew        bool   `json:"isNew"`
+    IsHot        bool   `json:"isHot"`
+    CounterPrice int64  `json:"counterPrice"`
+    RetailPrice  int64  `json:"retailPrice"`
+}
+
+
+@server(
+    group: home
+)
+service front-api {
+
+    @handler HomeIndex
+    get /api/home/index returns (HomeResp)
+}

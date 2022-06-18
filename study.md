@@ -15,8 +15,56 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 !["架构图"](./architecture.png)
 
 
-# 2 单体服务和微服务
+# 2 单体服务
+最快生成一个服务
+```shell
+$ mkdir go-zero-demo
+$ cd go-zero-demo
+$ go mod init go-zero-demo
+$ goctl api new greet
+$ go mod tidy
+Done.
+```
+查看一下greet服务的目录结构
+
+```shell
+$ tree greet
+greet
+├── etc
+│   └── greet-api.yaml
+├── greet.api
+├── greet.go
+└── internal
+    ├── config
+    │   └── config.go
+    ├── handler
+    │   ├── greethandler.go
+    │   └── routes.go
+    ├── logic
+    │   └── greetlogic.go
+    ├── svc
+    │   └── servicecontext.go
+    └── types
+        └── types.go
+```
+
+复杂一点的单体服务,主要区别还是在api文件的定义上,可以通过划分多个api文件
+
+```
+@server(
+    jwt: Auth
+    middleware: CheckUrl
+    group: order/cart
+    prefix: /api/order/cart
+)
+service admin-api {
+    @handler CartItemAdd
+    post /add (addCartItemReq) returns (addCartItemResp)
+}
+```
 
 # 3 goctl
+# 4 api
+# 5 rpc
+# 6 组件深入
 
-# 4 api和模板
