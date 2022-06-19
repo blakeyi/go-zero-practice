@@ -13,7 +13,7 @@ go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 
 极简的 API 描述，一键生成各端代码
 自动校验客户端请求参数合法性
 大量微服务治理和并发工具包
-!["架构图"](./architecture.png)
+!["架构图"](./images/architecture.png)
 
 
 # 2 单体服务
@@ -226,10 +226,22 @@ $ goctl model mysql datasource -url="$datasource" -table="user" -c -dir .
 Done.
 ```
 
+执行命令后会自动生成对应的接口函数,这里如果觉得生成的逻辑不太合适的话就可以自己修改模板
+```go
+	userModel interface {
+		Insert(ctx context.Context, data *User) (sql.Result, error)
+		FindOne(ctx context.Context, id int64) (*User, error)
+		FindOneByNumber(ctx context.Context, number string) (*User, error)
+		Update(ctx context.Context, data *User) error
+		Delete(ctx context.Context, id int64) error
+	}
+```
+目前只支持 mysql,postgre和mongo三种数据库
+
 # 4 模板
 go-zero主要模式还是通过编写api文件和proto文件,借用模板文件进行代码生成,有些时候对模板的定制还是比较重要的
 生成最新的template文件到指定文件夹, 要使用自己的模板的话,在相应的命令后面指定 -home参数即可
-`goctl.exe template init --home ./template`
+`goctl template init --home ./template`
 ```
 ├─api
 ├─docker
@@ -240,8 +252,93 @@ go-zero主要模式还是通过编写api文件和proto文件,借用模板文件�
 └─rpc
 ```
 
+# 5 goctl
+goctl是go-zero微服务框架下的代码生成工具。使用 goctl 可显著提升开发效率，让开发人员将时间重点放在业务开发上，其功能有：
 
+api服务生成
+rpc服务生成
+model代码生成
+模板管理
 
-# 3 goctl
+其他命令
+goctl docker 可以极速生成一个 Dockerfile，帮助开发/运维人员加快部署节奏，降低部署复杂度。
+```shell
+$ goctl docker -go hello.go
+$ docker build -t hello:v1 -f service/hello/Dockerfile .
+```
+goctl kube提供了快速生成一个 k8s 部署文件的功能，可以加快开发/运维人员的部署进度，减少部署复杂度。
+
+```shell
+$ goctl kube deploy -name redis -namespace adhoc -image redis:6-alpine -o redis.yaml -port 6379
+
+$ kubectl run -i --tty --rm cli --image=redis:6-alpine -n adhoc -- sh
+```
 # 6 组件深入
+
+# 6.1 高并发和高可用
+通过中间件注入的方式,将trace,log,数据监控,并发数控制,熔断,降载,超时等等功能加进去
+```go
+func (ng *engine) bindRoute(fr featuredRoutes, router httpx.Router, metrics *stat.Metrics,
+	route Route, verifier func(chain alice.Chain) alice.Chain) error {
+	chain := alice.New(
+		handler.TracingHandler(ng.conf.Name, route.Path),
+		ng.getLogHandler(),
+		handler.PrometheusHandler(route.Path),
+		handler.MaxConns(ng.conf.MaxConns),
+		handler.BreakerHandler(route.Method, route.Path, metrics),
+		handler.SheddingHandler(ng.getShedder(fr.priority), metrics),
+		handler.TimeoutHandler(ng.checkedTimeout(fr.timeout)),
+		handler.RecoverHandler,
+		handler.MetricHandler(metrics),
+		handler.MaxBytesHandler(ng.checkedMaxBytes(fr.maxBytes)),
+		handler.GunzipHandler,
+	)
+	chain = ng.appendAuthHandler(fr, chain, verifier)
+
+	for _, middleware := range ng.middlewares {
+		chain = chain.Append(convertMiddleware(middleware))
+	}
+	handle := chain.ThenFunc(route.Handler)
+
+	return router.Handle(route.Method, route.Path, handle)
+}
+```
+
+# 6.2 缓存管理
+
+# 6.2.1 更新db,删除缓存(不更新)
+- 1.想要提高应用的性能，可以引入「缓存」来解决
+
+- 2.引入缓存后，需要考虑缓存和数据库一致性问题，可选的方案有：「更新数据库 + 更新缓存」、「更新数据库 + 删除缓存」
+
+- 3.更新数据库 + 更新缓存方案，在「并发」场景下无法保证缓存和数据一致性，且存在「缓存资源浪费」和「机器性能浪费」的情况发生
+
+- 4.在更新数据库 + 删除缓存的方案中，「先删除缓存，再更新数据库」在「并发」场景下依旧有数据不一致问题，解决方案是「延迟双删」，但这个延迟时间很难评估，所以推荐用「先更新数据库，再删除缓存」的方案
+
+- 5.在「先更新数据库，再删除缓存」方案下，为了保证两步都成功执行，需配合「消息队列」或「订阅变更日志」的方案来做，本质是通过「重试」的方式保证数据一致性
+
+- 6.在「先更新数据库，再删除缓存」方案下，「读写分离 + 主从库延迟」也会导致缓存和数据库不一致，缓解此问题的方案是「延迟双删」，凭借经验发送「延迟消息」到队列中，延迟删除缓存，同时也要控制主从库延迟，尽可能降低不一致发生的概率
+
+# 6.2.2 缓存自动管理
+
+# 6.2.2.1 单行缓存管理
+- 基于主键的缓存
+- 基于唯一索引的缓存
+- 基于组合唯一索引的缓存
+分类
+!["架构图"](./images/single-cache.jpg)
+查询流程
+!["架构图"](./images/single-cache1.jpg)
+查询流程
+!["架构图"](./images/single-cache2.jpg)
+查询流程
+!["架构图"](./images/single-cache3.jpg)
+
+# 6.2.2.2 多行缓存管理
+分类
+!["架构图"](./images/multi-cache.jpg)
+查询流程
+!["架构图"](./images/multi-cache1.jpg)
+
+
 
