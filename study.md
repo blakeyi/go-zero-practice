@@ -1,18 +1,19 @@
 [TOC]
-# 1 架构图
+# 1 总体介绍
+# 1.1 目标
 缩短从需求到上线的距离
-go-zero 是一个集成了各种工程实践的 web 和 rpc 框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
+- go-zero 是一个集成了各种工程实践的web和rpc框架。通过弹性设计保障了大并发服务端的稳定性，经受了充分的实战检验。
+- go-zero 包含极简的API定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
 
-go-zero 包含极简的 API 定义和生成工具 goctl，可以根据定义的 api 文件一键生成 Go, iOS, Android, Kotlin, Dart, TypeScript, JavaScript 代码，并可直接运行。
-
-使用 go-zero 的好处：
-
+- 使用 go-zero 的好处：
 轻松获得支撑千万日活服务的稳定性
 内建级联超时控制、限流、自适应熔断、自适应降载等微服务治理能力，无需配置和额外代码
 微服务治理中间件可无缝集成到其它现有框架使用
 极简的 API 描述，一键生成各端代码
 自动校验客户端请求参数合法性
 大量微服务治理和并发工具包
+
+# 1.1 架构图
 !["架构图"](./images/architecture.png)
 
 
@@ -198,16 +199,25 @@ service User {
 ## 3.3 编写业务逻辑
 在对应的logic文件中
 ```go
-func (l *GetUserLogic) GetUser(in *user.IdRequest) (*user.UserResponse, error) {
-    return &user.UserResponse{
-            Id:   "1",
-            Name: "test",
-    }, nil
+func (l *GetOrderLogic) GetOrder(req *types.OrderReq) (resp *types.OrderReply, err error) {
+	// todo: add your logic here and delete this line
+	user, err := l.svcCtx.UserRpc.GetUser(l.ctx, &user.IdRequest{
+		Id: "1",
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if user.Name != "test" {
+		return nil, errors.New("用户不存在")
+	}
+
+	return &types.OrderReply{
+		Id:   req.Id,
+		Name: "test order",
+	}, nil
 }
 ```
-
-## 3.4 rpc深入
-
 
 # 4 数据库model文件
 
@@ -236,7 +246,7 @@ Done.
 		Delete(ctx context.Context, id int64) error
 	}
 ```
-目前只支持 mysql,postgre和mongo三种数据库
+目前只支持 mysql,postgres和mongo三种数据库
 
 # 4 模板
 go-zero主要模式还是通过编写api文件和proto文件,借用模板文件进行代码生成,有些时候对模板的定制还是比较重要的
